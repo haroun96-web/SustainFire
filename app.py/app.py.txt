@@ -1,0 +1,105 @@
+from flask import Flask, request, redirect
+import sqlite3
+
+app = Flask(__name__)
+
+# HTML template - النموذج
+form_html = """
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mémoire de Paiement</title>
+</head>
+<body>
+  <h2>Formulaire - Mémoire de Paiement</h2>
+  <form method="post">
+    <label>Numéro Mémoire:</label><br>
+    <input type="text" name="num_mem"><br>
+    <label>Montant:</label><br>
+    <input type="number" name="montant"><br>
+    <label>Date MP:</label><br>
+    <input type="date" name="date_mp"><br>
+    <label>Date Paiement:</label><br>
+    <input type="date" name="date_pay"><br>
+    <label>Montant Enregistré:</label><br>
+    <input type="number" name="montant_enr"><br>
+    <label>Montant Publié:</label><br>
+    <input type="number" name="montant_pub"><br><br>
+    <button type="submit">Enregistrer</button>
+  </form>
+  <p><a href="/liste">Voir la liste</a></p>
+</body>
+</html>
+"""
+
+# HTML template - جدول العرض
+def render_table(records):
+    html = """
+    <html><head><meta charset="utf-8"><title>Liste</title></head><body>
+    <h2>Liste des Mémoires</h2>
+    <table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Numéro</th>
+        <th>Montant</th>
+        <th>Date MP</th>
+        <th>Date Paiement</th>
+        <th>Montant Enr.</th>
+        <th>Montant Pub.</th>
+    </tr>"""
+    for row in records:
+        html += f"<tr><td>{row[0]}</td><td>{row[1]}</td><td>{row[2]}</td><td>{row[3]}</td><td>{row[4]}</td><td>{row[5]}</td><td>{row[6]}</td></tr>"
+    html += "</table><p><a href='/'>Ajouter un autre mémoire</a></p></body></html>"
+    return html
+
+# إنشاء قاعدة البيانات
+def init_db():
+    conn = sqlite3.connect('memoire.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS memoire_payement (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        num_mem TEXT,
+        montant REAL,
+        date_mp TEXT,
+        date_pay TEXT,
+        montant_enr REAL,
+        montant_pub REAL
+    )''')
+    conn.commit()
+    conn.close()
+
+# المسار الرئيسي (إضافة)
+@app.route('/', methods=['GET', 'POST'])
+def formulaire():
+    if request.method == 'POST':
+        data = (
+            request.form['num_mem'],
+            request.form['montant'],
+            request.form['date_mp'],
+            request.form['date_pay'],
+            request.form['montant_enr'],
+            request.form['montant_pub']
+        )
+        conn = sqlite3.connect('memoire.db')
+        c = conn.cursor()
+        c.execute('INSERT INTO memoire_payement (num_mem, montant, date_mp, date_pay, montant_enr, montant_pub) VALUES (?, ?, ?, ?, ?, ?)', data)
+        conn.commit()
+        conn.close()
+        return redirect('/liste')
+    return form_html
+
+# المسار الثاني (عرض)
+@app.route('/liste')
+def liste():
+    conn = sqlite3.connect('memoire.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM memoire_payement')
+    records = c.fetchall()
+    conn.close()
+    return render_table(records)
+
+# تشغيل التطبيق
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)

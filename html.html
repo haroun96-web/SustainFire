@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Liste des Mémoires</title>
+</head>
+<body>
+  <h2>Liste des Mémoires</h2>
+  <table border="1">
+    <tr>
+      <th>ID</th>
+      <th>Numéro</th>
+      <th>Montant</th>
+      <th>Date MP</th>
+      <th>Date Paiement</th>
+      <th>Montant Enr.</th>
+      <th>Montant Pub.</th>
+      <th>Actions</th>
+    </tr>
+    {% for row in records %}
+    <tr>
+      <td>{{ row[0] }}</td>
+      <td>{{ row[1] }}</td>
+      <td>{{ row[2] }}</td>
+      <td>{{ row[3] }}</td>
+      <td>{{ row[4] }}</td>
+      <td>{{ row[5] }}</td>
+      <td>{{ row[6] }}</td>
+      <td>
+        <a href="{{ url_for('edit', id=row[0]) }}">Modifier</a> |
+        <a href="{{ url_for('delete', id=row[0]) }}" onclick="return confirm('Supprimer ce mémoire ?')">Supprimer</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p><a href="/">Ajouter un nouveau mémoire</a></p>
+</body>
+</html>
